@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement name="container" style="flex-grow: 1;">
+        <ui:MultiColumnListView name="mclView" />
+    </ui:VisualElement>
+</ui:UXML>
