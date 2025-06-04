@@ -10,6 +10,8 @@ using UnityEditor.Rendering;
 
 using UnityEngine.UIElements;
 
+using Button = UnityEngine.UIElements.Button;
+
 namespace IEDLabs.EditorUtilities
 {
     public class SelectionTracker : EditorWindow
@@ -17,6 +19,7 @@ namespace IEDLabs.EditorUtilities
         [SerializeField]
         private VisualTreeAsset xmlAsset;
 
+        private VisualElement root;
         private SelectionTrackerData selectionData;
 #region window lifecycle
 
@@ -38,20 +41,10 @@ namespace IEDLabs.EditorUtilities
                 return;
             }
 
-            selectionData = SelectionTrackerUtils.LoadSelectionHistory();
 
-            VisualElement root = visualTree.Instantiate();
-            rootVisualElement.Add(root);
-
-            var pinnedView = root.Q<MultiColumnListView>("pinnedView");
-            pinnedView.itemsSource = selectionData.pinned.entries;
-            pinnedView.columns["name"].makeCell = () => new Label();
-            //pinnedView.columns["object"].makeCell =
-
-            var historyView = root.Q<MultiColumnListView>("historyView");
-            historyView.itemsSource = selectionData.history.entries;
-            historyView.columns["name"].makeCell = () => new Label();
-
+            root = visualTree.Instantiate();
+            root.Add(new Button(BuildDisplay));
+            BuildDisplay();
             Selection.selectionChanged += OnSelectionChange;
         }
 
@@ -62,6 +55,22 @@ namespace IEDLabs.EditorUtilities
         }
 
 #endregion // window lifecycle
+
+        private void BuildDisplay()
+        {
+            selectionData = SelectionTrackerUtils.LoadSelectionHistory();
+            rootVisualElement.Add(root);
+
+            var pinnedView = new MclView(selectionData.history.entries);
+            root.Add(pinnedView);
+            //pinnedView .itemsSource = selectionData.pinned.entries;
+            // pinnedView.columns["name"].makeCell = () => new Label();
+            //pinnedView.columns["object"].makeCell =
+
+            var historyView = root.Q<MclView>("historyView");
+            // historyView.itemsSource = selectionData.history.entries;
+            // historyView.columns["name"].makeCell = () => new Label();
+        }
 
 #region selection handling
 
@@ -80,6 +89,7 @@ namespace IEDLabs.EditorUtilities
             }
             Debug.Log($"#EDITORWINDO# selection changed to: {activeObject.name} of type: {activeObject.GetType()}, guid: {guid}");
             selectionData.history.AddEntry(activeObject, guid);
+            SelectionTrackerUtils.SaveSelectionHistory(selectionData);
         }
 #endregion // selection handling
 

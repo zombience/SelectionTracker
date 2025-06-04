@@ -37,6 +37,7 @@ namespace IEDLabs.EditorUtilities
                 lastSelected = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
             entries.Add(entry);
+            Debug.Log($"#SELECTION_TRACKER# adding entry: {entry}");
             return true;
         }
     }
@@ -56,6 +57,9 @@ namespace IEDLabs.EditorUtilities
         {
             return !string.IsNullOrEmpty(guid) ? guid.GetHashCode() : -1;
         }
+
+        /// <inheritdoc />
+        public override string ToString() => $"name: {objectName} guid: {guid}";
     }
 
 #region IO Helpers
@@ -94,7 +98,6 @@ namespace IEDLabs.EditorUtilities
         internal static SelectionTrackerData LoadSelectionHistory()
         {
             var returnObject = new SelectionTrackerData();
-            Debug.Log($"#SELECTION_TRACKER# attempting to load data from {FullFilePath}");
             if (!File.Exists(FullFilePath))
             {
                 SaveSelectionHistory(returnObject);
