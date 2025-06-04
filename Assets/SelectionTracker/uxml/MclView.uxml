@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="True">
+    <ui:VisualElement style="flex-grow: 1;">
+        <ui:MultiColumnListView name="mclView" reorderable="true" allow-add="false" show-alternating-row-backgrounds="All" show-border="true" show-foldout-header="true" style="flex-grow: 1; min-height: 50; min-width: 200;">
+            <ui:Columns primary-column-name="asset" resize-preview="true">
+                <ui:Column name="asset" title="Asset" width="160px" min-width="80px" stretchable="true"/>
+                <ui:Column name="action" title="Action" width="160" stretchable="true" />
+                <ui:Column name="time" title="Last Selected" width="160" stretchable="true" />
+            </ui:Columns>
+        </ui:MultiColumnListView>
+    </ui:VisualElement>
+</ui:UXML>

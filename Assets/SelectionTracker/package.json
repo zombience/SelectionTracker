@@ -1,0 +1,20 @@
+{
+    "name": "com.iedlabs.selectiontracker",
+    "version": "1.0.0",
+    "displayName": "Selection Tracker",
+    "description": "Quickly navigate your Unity3D project by tracking recently selected assets and pinning your favorites with this editor tool.",
+    "unity": "2022.3",
+    "keywords":
+    [
+        "Editor",
+        "Utility",
+        "Assets"
+    ],
+    "author":
+    {
+        "name": "IEDLabs",
+        "email": "unitypackages@iedlabs.net",
+        "url": "https://github.com/zombience"
+    },
+    "hideInEditor": false
+}
