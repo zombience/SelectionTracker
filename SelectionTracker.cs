@@ -1,7 +1,13 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+
+using Unity.AppUI.UI;
 
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Rendering;
+
 using UnityEngine.UIElements;
 
 namespace IEDLabs.EditorUtilities
@@ -11,12 +17,10 @@ namespace IEDLabs.EditorUtilities
         [SerializeField]
         private VisualTreeAsset xmlAsset;
 
-        [SerializeField]
-        private ScriptableObject storageObject;
-
+        private SelectionTrackerData selectionData;
 #region window lifecycle
 
-        [MenuItem("Window/Selection Tracker")]
+        [UnityEditor.MenuItem("Window/Selection Tracker")]
         public static void ShowWindow()
         {
             var wnd = GetWindow<SelectionTracker>();
@@ -34,46 +38,50 @@ namespace IEDLabs.EditorUtilities
                 return;
             }
 
+            selectionData = SelectionTrackerUtils.LoadSelectionHistory();
+
             VisualElement root = visualTree.Instantiate();
-            var mclv = root.Q<MultiColumnListView>("mclView");
             rootVisualElement.Add(root);
-            if (!storageObject)
-            {
-                CreateStorageObject();
-                Debug.Log($"#SELECTION_TRACKER# {nameof(SelectionTrackerStorage)}.asset was not assigned to {nameof(SelectionTracker)} asset" +
-                          $"Location the .asset file (should be in the same dir as this .cs file) and assign it to the\"storageObject\" field" +
-                          $"in the inspector");
-            }
+
+            var pinnedView = root.Q<MultiColumnListView>("pinnedView");
+            pinnedView.itemsSource = selectionData.pinned.entries;
+            pinnedView.columns["name"].makeCell = () => new Label();
+            //pinnedView.columns["object"].makeCell =
+
+            var historyView = root.Q<MultiColumnListView>("historyView");
+            historyView.itemsSource = selectionData.history.entries;
+            historyView.columns["name"].makeCell = () => new Label();
+
             Selection.selectionChanged += OnSelectionChange;
         }
 
         private void OnDestroy()
         {
-            Debug.Log($"#EDITORWINDOW# closed {this}");
             Selection.selectionChanged -= OnSelectionChange;
+            SelectionTrackerUtils.SaveSelectionHistory(selectionData);
         }
 
 #endregion // window lifecycle
 
-        private void CreateStorageObject()
+#region selection handling
+
+        private void OnSelectionChange()
         {
-            string scriptName = nameof(SelectionTrackerStorage);
-            string scriptPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(this));
-            string scriptDirectory = Path.GetDirectoryName(scriptPath);
-            string storageAssetPath = Path.Combine(scriptDirectory, $"{scriptName}.asset");
-            storageObject = AssetDatabase.LoadAssetAtPath<SelectionTrackerStorage>(storageAssetPath);
-            if (storageObject)
+            var activeObject = Selection.GetFiltered<Object>(SelectionMode.Assets).FirstOrDefault();
+            if (!activeObject)
             {
                 return;
             }
 
-            storageObject = CreateInstance<SelectionTrackerStorage>();
-            AssetDatabase.CreateAsset(storageObject, storageAssetPath);
+            // ignore non-asset items
+            if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(activeObject, out var guid, out long id))
+            {
+                return;
+            }
+            Debug.Log($"#EDITORWINDO# selection changed to: {activeObject.name} of type: {activeObject.GetType()}, guid: {guid}");
+            selectionData.history.AddEntry(activeObject, guid);
         }
+#endregion // selection handling
 
-        private void OnSelectionChange()
-        {
-            Debug.Log($"#EDITORWINDO# selection changed to: {Selection.activeObject} of type: {Selection.activeObject.GetType()}");
-        }
     }
 }

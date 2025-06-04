@@ -1,5 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
-    <ui:VisualElement name="container" style="flex-grow: 1;">
-        <ui:MultiColumnListView name="mclView" />
-    </ui:VisualElement>
+    <ui:MultiColumnListView name="pinnedView">
+        <ui:Column name="name" title="Name" width="80" />
+        <ui:Column name="object" title="Object" style="flex-direction: row flex-grow:1" />
+    </ui:MultiColumnListView>
+    <ui:MultiColumnListView name="historyView">
+        <ui:Column name="name" title="Name" width="80" />
+        <ui:Column name="object" title="Object" style="flex-direction: row flex-grow:1" />
+    </ui:MultiColumnListView>
 </ui:UXML>
