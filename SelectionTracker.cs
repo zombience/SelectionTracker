@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-
-using Unity.AppUI.UI;
 
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Rendering;
 
 using UnityEngine.UIElements;
 
@@ -21,9 +16,13 @@ namespace IEDLabs.EditorUtilities
 
         private VisualElement root;
         private SelectionTrackerData selectionData;
+        private MclView
+            pinnedView,
+            historyView;
+
 #region window lifecycle
 
-        [UnityEditor.MenuItem("Window/Selection Tracker")]
+        [MenuItem("Window/Selection Tracker")]
         public static void ShowWindow()
         {
             var wnd = GetWindow<SelectionTracker>();
@@ -40,7 +39,6 @@ namespace IEDLabs.EditorUtilities
                                $"Locate {scriptName}.cs script and drag the {scriptName}.uxml asset into the 'xmlAsset' field");
                 return;
             }
-
 
             root = visualTree.Instantiate();
             root.Add(new Button(BuildDisplay));
@@ -61,18 +59,14 @@ namespace IEDLabs.EditorUtilities
             selectionData = SelectionTrackerUtils.LoadSelectionHistory();
             rootVisualElement.Add(root);
 
-            var pinnedView = new MclView(selectionData.history.entries);
+            pinnedView = new MclView(selectionData.pinned.entries, "unpin", UnPinEntry);
             root.Add(pinnedView);
-            //pinnedView .itemsSource = selectionData.pinned.entries;
-            // pinnedView.columns["name"].makeCell = () => new Label();
-            //pinnedView.columns["object"].makeCell =
 
-            var historyView = root.Q<MclView>("historyView");
-            // historyView.itemsSource = selectionData.history.entries;
-            // historyView.columns["name"].makeCell = () => new Label();
+            historyView = new MclView(selectionData.history.entries, "pin", PinEntry);
+            root.Add(historyView);
         }
 
-#region selection handling
+        #region selection handling
 
         private void OnSelectionChange()
         {
@@ -82,16 +76,41 @@ namespace IEDLabs.EditorUtilities
                 return;
             }
 
-            // ignore non-asset items
+            // only handle assets from project window
             if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(activeObject, out var guid, out long id))
             {
                 return;
             }
-            Debug.Log($"#EDITORWINDO# selection changed to: {activeObject.name} of type: {activeObject.GetType()}, guid: {guid}");
+
+            // Debug.Log($"#EDITORWINDO# Selection changed to: {activeObject.name} (GUID: {guid})");
+
             selectionData.history.AddEntry(activeObject, guid);
             SelectionTrackerUtils.SaveSelectionHistory(selectionData);
+            RefreshViews();
         }
-#endregion // selection handling
 
+        private void UnPinEntry(SelectionEntry entryToRemove)
+        {
+            Debug.Log($"Attempting to remove '{entryToRemove.objectName}' (GUID: {entryToRemove.guid}) from pinned list.");
+            selectionData.pinned.entries.RemoveAll(e => e.guid == entryToRemove.guid);
+            SelectionTrackerUtils.SaveSelectionHistory(selectionData);
+            RefreshViews();
+        }
+
+        private void PinEntry(SelectionEntry entryToPin)
+        {
+            Debug.Log($"Attempting to pin '{entryToPin.objectName}' (GUID: {entryToPin.guid}) from history list.");
+            selectionData.pinned.AddEntry(entryToPin);
+            SelectionTrackerUtils.SaveSelectionHistory(selectionData);
+            RefreshViews();
+        }
+
+        private void RefreshViews()
+        {
+            pinnedView?.RefreshView();
+            historyView?.RefreshView();
+        }
+
+        #endregion // selection handling
     }
 }

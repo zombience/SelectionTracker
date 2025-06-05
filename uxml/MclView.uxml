@@ -1,9 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
     <ui:VisualElement style="flex-grow: 1;">
-        <ui:MultiColumnListView name="mclView" reorderable="true" allow-add="false">
+        <ui:MultiColumnListView name="mclView" reorderable="true" allow-add="false" show-alternating-row-backgrounds="All" show-border="true" show-foldout-header="true">
             <ui:Columns primary-column-name="asset" resize-preview="true">
-                <ui:Column name="name" title="Name" min-width="60px" optional="false" />
-                <ui:Column name="asset" title="Asset" min-width="60px" optional="false" />
+                <ui:Column name="name" title="Name" width="160px" min-width="80px" stretchable="true" />
+                <ui:Column name="asset" title="Asset" width="160px" min-width="80px" stretchable="true" />
+                <ui:Column name="action" title="Action" width="160" stretchable="true" />
             </ui:Columns>
         </ui:MultiColumnListView>
     </ui:VisualElement>

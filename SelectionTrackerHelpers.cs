@@ -25,32 +25,74 @@ namespace IEDLabs.EditorUtilities
 
         public bool AddEntry(Object item, string itemGuid)
         {
-            if (entries.Any(e => e.guid == itemGuid))
-            {
-                return false;
-            }
-
+            // create an entry to rely on entry.GetHashCode for Contains()
             var entry = new SelectionEntry()
             {
                 guid = itemGuid,
                 objectName = item.name,
                 lastSelected = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
+
+            if (entries.Contains(entry))
+            {
+                return false;
+            }
+
             entries.Add(entry);
             Debug.Log($"#SELECTION_TRACKER# adding entry: {entry}");
             return true;
         }
+
+        /// <summary>
+        /// allow passing formed entry from one list to another
+        /// will not add if already present
+        /// </summary>
+        /// <param name="entry"></param>
+        /// <returns></returns>
+        public bool AddEntry(SelectionEntry entry)
+        {
+            if (entries.Contains(entry))
+            {
+                return false;
+            }
+
+            entries.Add(entry);
+            return true;
+        }
+
+        public bool RemoveEntry(string guid)
+        {
+            SelectionEntry entry = new() { guid = guid };
+            return RemoveEntry(entry);
+        }
+
+        public bool RemoveEntry(SelectionEntry entry)
+        {
+            return entries.RemoveAll(e => e.guid == entry.guid) > 0;
+        }
     }
 
     [Serializable]
-    public class SelectionEntry
+    public class SelectionEntry : IComparable<SelectionEntry>
     {
         public string
             guid,
             objectName;
 
-        public long
-            lastSelected;
+        public long lastSelected;
+
+        /// <inheritdoc />
+        public int CompareTo(SelectionEntry other) => lastSelected.CompareTo(other.lastSelected);
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            if (obj is SelectionEntry other)
+            {
+                return string.Equals(guid, other.guid, StringComparison.Ordinal);
+            }
+            return false;
+        }
 
         /// <inheritdoc />
         public override int GetHashCode()
@@ -71,7 +113,8 @@ namespace IEDLabs.EditorUtilities
         private static string DataDirectory =>
             Path.Combine(Application.persistentDataPath, "SelectionTracker", GetProjectName());
 
-        private static string FullFilePath =>  Path.Combine(DataDirectory, "selectionHistory.dat");
+        private static string FullFilePath =>
+            Path.Combine(DataDirectory, "selectionHistory.dat");
 
         private static string GetProjectName()
         {
