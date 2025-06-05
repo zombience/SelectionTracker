@@ -5,6 +5,7 @@
                 <ui:Column name="name" title="Name" width="160px" min-width="80px" stretchable="true" />
                 <ui:Column name="asset" title="Asset" width="160px" min-width="80px" stretchable="true" />
                 <ui:Column name="action" title="Action" width="160" stretchable="true" />
+                <ui:Column name="time" title="Last Selected" width="160" stretchable="true" />
             </ui:Columns>
         </ui:MultiColumnListView>
     </ui:VisualElement>

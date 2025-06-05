@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+
+using UnityEditor;
 
 using UnityEngine;
+using UnityEngine.UIElements;
 
 using Object = UnityEngine.Object;
 
@@ -30,7 +32,7 @@ namespace IEDLabs.EditorUtilities
             {
                 guid = itemGuid,
                 objectName = item.name,
-                lastSelected = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                lastSelected = DateTimeOffset.Now.ToUnixTimeSeconds()
             };
 
             if (entries.Contains(entry))
@@ -38,7 +40,7 @@ namespace IEDLabs.EditorUtilities
                 return false;
             }
 
-            entries.Add(entry);
+            entries.Insert(0, entry);
             Debug.Log($"#SELECTION_TRACKER# adding entry: {entry}");
             return true;
         }
@@ -56,7 +58,7 @@ namespace IEDLabs.EditorUtilities
                 return false;
             }
 
-            entries.Add(entry);
+            entries.Insert(0, entry);
             return true;
         }
 
@@ -104,11 +106,86 @@ namespace IEDLabs.EditorUtilities
         public override string ToString() => $"name: {objectName} guid: {guid}";
     }
 
-#region IO Helpers
     internal static class SelectionTrackerUtils
     {
+        internal static Background GetBgForAsset(string guid)
+        {
+            var asset = AssetDatabase.GetMainAssetTypeFromGUID(new (guid));
+            var iconFile = GetEditorIconForFile(asset);
+            return Background.FromTexture2D(EditorGUIUtility.IconContent(iconFile).image as Texture2D);
+        }
+        // icon names: https://github.com/halak/unity-editor-icons
+        private static string GetEditorIconForFile(Type assetType)
+        {
+            if (assetType == typeof(ScriptableObject))
+            {
+                return "ScriptableObject Icon";
+            }
+            if (assetType == typeof(UnityEngine.Object))
+            {
+                return "ScriptableObject Icon";
+            }
+            if (assetType == typeof(UnityEngine.Mesh) ||
+                     assetType == typeof(UnityEngine.GameObject))
+            {
+                return "PrefabModel Icon";
+            }
+            if (assetType ==
+                     typeof(UnityEditor.Animations.
+                         AnimatorController))
+            {
+                return "UnityEditor.Graphs.AnimatorControllerTool";
+            }
+            if (assetType == typeof(MonoScript))
+            {
+                return "cs Script Icon";
+            }
+            if (assetType == typeof(System.Reflection.Assembly))
+            {
+                return "dll Script Icon";
+            }
+            if (assetType == typeof(Material))
+            {
+                return "Material Icon";
+            }
+            if (assetType == typeof(AudioClip))
+            {
+                return "AudioClip Icon";
+            }
+            if (assetType == typeof(DefaultAsset))
+            {
+                return "Folder Icon";
+            }
+            if (assetType == typeof(GameObject))
+            {
+#if UNITY_2018_3_OR_NEWER
+                return "d_Prefab Icon";
+#else
+        return "PrefabNormal Icon";
+#endif
+            }
+            if (assetType == typeof(TextAsset))
+            {
+                return "TextAsset Icon";
+            }
+            if (assetType == typeof(SceneAsset))
+            {
+                return "SceneAsset Icon";
+            }
+            if (assetType == typeof(StyleSheet))
+            {
+                return "UssScript Icon";
+            }
+            if (assetType == typeof(VisualTreeAsset))
+            {
+                return "UxmlScript Icon";
+            }
 
-#region pathing
+            return "DefaultAsset Icon";
+        }
+
+#region IO Helpers
+#region path
 
         private static string DataDirectory =>
             Path.Combine(Application.persistentDataPath, "SelectionTracker", GetProjectName());
@@ -123,7 +200,7 @@ namespace IEDLabs.EditorUtilities
             return projectName;
         }
 
-#endregion // pathing
+#endregion // path
 
         internal static void SaveSelectionHistory(SelectionTrackerData selectionDataObj)
         {
@@ -135,7 +212,7 @@ namespace IEDLabs.EditorUtilities
 
             using StreamWriter sw = new(FullFilePath);
             sw.Write(jsonData);
-            Debug.Log($"#SELECTION_TRACKER# writing data to {FullFilePath}");
+            //Debug.Log($"#SELECTION_TRACKER# writing data to {FullFilePath}");
         }
 
         internal static SelectionTrackerData LoadSelectionHistory()

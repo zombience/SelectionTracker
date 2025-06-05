@@ -59,14 +59,14 @@ namespace IEDLabs.EditorUtilities
             selectionData = SelectionTrackerUtils.LoadSelectionHistory();
             rootVisualElement.Add(root);
 
-            pinnedView = new MclView(selectionData.pinned.entries, "unpin", UnPinEntry);
+            pinnedView = new MclView(selectionData.pinned.entries, "pinned items", "unpin", UnPinEntry);
             root.Add(pinnedView);
 
-            historyView = new MclView(selectionData.history.entries, "pin", PinEntry);
+            historyView = new MclView(selectionData.history.entries, "selection history", "pin", PinEntry);
             root.Add(historyView);
         }
 
-        #region selection handling
+#region selection handling
 
         private void OnSelectionChange()
         {
@@ -111,6 +111,6 @@ namespace IEDLabs.EditorUtilities
             historyView?.RefreshView();
         }
 
-        #endregion // selection handling
+#endregion // selection handling
     }
 }

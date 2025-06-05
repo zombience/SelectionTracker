@@ -19,13 +19,13 @@ namespace IEDLabs.EditorUtilities
         private List<SelectionEntry> listSource;
         private Action<SelectionEntry> onButtonClick;
 
-        public MclView(List<SelectionEntry> itemsSource, string buttonText, Action<SelectionEntry> buttonAction)
+        public MclView(List<SelectionEntry> itemsSource, string title, string buttonText, Action<SelectionEntry> buttonAction)
         {
-            var container = LoadUXML();
+            var container = LoadUxml();
             container.CloneTree(this);
             listSource = itemsSource;
             onButtonClick = buttonAction;
-            BuildMclView(buttonText);
+            BuildMclView(title, buttonText);
         }
 
         public void RefreshView()
@@ -33,11 +33,12 @@ namespace IEDLabs.EditorUtilities
             mcList.RefreshItems();
         }
 
-        private void BuildMclView(string buttonText)
+        private void BuildMclView(string title, string buttonText)
         {
             mcList = this.Q<MultiColumnListView>("mclView");
 
             mcList.itemsSource = listSource;
+            mcList.headerTitle = title;
 
             mcList.columns["name"].makeCell = () => new Label();
             mcList.columns["name"].bindCell = (element, index) =>
@@ -47,15 +48,15 @@ namespace IEDLabs.EditorUtilities
                 label.text = entry.objectName;
             };
 
-            mcList.columns["asset"].makeCell = () => new ObjectField();
+            mcList.columns["asset"].makeCell = () => new Button();
             mcList.columns["asset"].bindCell = (element, index) =>
             {
                 var entry = listSource[index];
-                var objectField = element as ObjectField;
-                objectField.value = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(entry.guid));
-                objectField.allowSceneObjects = false;
-                objectField.objectType = typeof(Object);
-                objectField.name = "objectField_" + entry.guid;
+                var button = element as Button;
+                button.text = entry.objectName;
+                //var asset = AssetDatabase.GetMainAssetTypeFromGUID(new (entry.guid));
+                button.iconImage = SelectionTrackerUtils.GetBgForAsset(entry.guid);
+                button.style.alignItems = new StyleEnum<Align>(Align.FlexStart);
             };
 
             mcList.columns["action"].makeCell = () => new Button();
@@ -68,9 +69,18 @@ namespace IEDLabs.EditorUtilities
                 button.clicked -= () => onButtonClick?.Invoke(entry); // Remove previous lambda
                 button.clicked += () => onButtonClick?.Invoke(entry);
             };
+
+            mcList.columns["time"].makeCell = () => new Label();
+            mcList.columns["time"].bindCell = (element, index) =>
+            {
+                var entry = listSource[index];
+                var label = element as Label;
+                var dt = DateTimeOffset.FromUnixTimeSeconds(entry.lastSelected);
+                label.text = dt.ToString("hh:mm yy-MM-dd");
+            };
         }
 
-        private VisualTreeAsset LoadUXML()
+        private static VisualTreeAsset LoadUxml()
         {
             var assets = AssetDatabase
                 .FindAssets($"MclView");
