@@ -83,7 +83,6 @@ namespace IEDLabs.EditorUtilities
             }
 
             // Debug.Log($"#EDITORWINDO# Selection changed to: {activeObject.name} (GUID: {guid})");
-
             selectionData.history.AddEntry(activeObject, guid);
             SelectionTrackerUtils.SaveSelectionHistory(selectionData);
             RefreshViews();
@@ -91,7 +90,6 @@ namespace IEDLabs.EditorUtilities
 
         private void UnPinEntry(SelectionEntry entryToRemove)
         {
-            Debug.Log($"Attempting to remove '{entryToRemove.objectName}' (GUID: {entryToRemove.guid}) from pinned list.");
             selectionData.pinned.entries.RemoveAll(e => e.guid == entryToRemove.guid);
             SelectionTrackerUtils.SaveSelectionHistory(selectionData);
             RefreshViews();
@@ -99,7 +97,6 @@ namespace IEDLabs.EditorUtilities
 
         private void PinEntry(SelectionEntry entryToPin)
         {
-            Debug.Log($"Attempting to pin '{entryToPin.objectName}' (GUID: {entryToPin.guid}) from history list.");
             selectionData.pinned.AddEntry(entryToPin);
             SelectionTrackerUtils.SaveSelectionHistory(selectionData);
             RefreshViews();

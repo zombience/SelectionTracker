@@ -60,8 +60,8 @@ namespace IEDLabs.EditorUtilities
             {
                 var entry = listSource[index];
                 var label = element as Label;
-                var dt = DateTimeOffset.FromUnixTimeSeconds(entry.lastSelected);
-                label.text = dt.ToString("hh:mm yy-MM-dd");
+                var dt = DateTimeOffset.FromUnixTimeSeconds(entry.lastSelected).ToLocalTime();
+                label.text = dt.ToString("HH:mm yy-MM-dd");
             };
         }
 

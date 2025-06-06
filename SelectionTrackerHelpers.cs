@@ -33,7 +33,7 @@ namespace IEDLabs.EditorUtilities
             {
                 guid = itemGuid,
                 objectName = item.name,
-                lastSelected = DateTimeOffset.Now.ToUnixTimeSeconds()
+                lastSelected = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
 
             if (entries.Contains(entry))
@@ -42,7 +42,7 @@ namespace IEDLabs.EditorUtilities
             }
 
             entries.Insert(0, entry);
-            Debug.Log($"#SELECTION_TRACKER# adding entry: {entry}");
+            //Debug.Log($"#SELECTION_TRACKER# adding entry: {entry}");
             return true;
         }
 
