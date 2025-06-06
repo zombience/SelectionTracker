@@ -84,6 +84,9 @@ namespace IEDLabs.EditorUtilities
 
         public long lastSelected;
 
+        // track deleted assets to handle display across multiple lists/views
+        public bool isNull;
+
         /// <inheritdoc />
         public int CompareTo(SelectionEntry other) => lastSelected.CompareTo(other.lastSelected);
 
@@ -111,92 +114,36 @@ namespace IEDLabs.EditorUtilities
     {
         internal static Background GetBgForAsset(string guid)
         {
-            var asset = AssetDatabase.GetMainAssetTypeFromGUID(new(guid));
-            var iconFile = GetEditorIconForFile(asset);
-            return Background.FromTexture2D(EditorGUIUtility.IconContent(iconFile).image as Texture2D);
+            string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+            Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
+            var specialCaseIconName = CheckSpecialTypes(assetType);
+            Texture2D icon;
+            if (!string.IsNullOrEmpty(specialCaseIconName))
+            {
+                icon = EditorGUIUtility.IconContent(specialCaseIconName).image as Texture2D;
+            }
+            else
+            {
+                GUIContent content = EditorGUIUtility.ObjectContent(null, assetType);
+                icon = content.image as Texture2D;
+            }
+            return Background.FromTexture2D(icon);
         }
 
         // icon names: https://github.com/halak/unity-editor-icons
-        private static string GetEditorIconForFile(Type assetType)
+        // https://github.com/ErnSur/unity-editor-icons
+        private static string CheckSpecialTypes(Type assetType)
         {
-            if (assetType == typeof(ScriptableObject))
+            if (assetType == typeof(DefaultAsset))
             {
-                return "ScriptableObject Icon";
+                return "Folder Icon";
             }
-
-            if (assetType == typeof(UnityEngine.Object))
-            {
-                return "ScriptableObject Icon";
-            }
-
-            if (assetType == typeof(UnityEngine.Mesh) ||
-                assetType == typeof(UnityEngine.GameObject))
-            {
-                return "PrefabModel Icon";
-            }
-
-            if (assetType ==
-                typeof(UnityEditor.Animations.
-                    AnimatorController))
-            {
-                return "UnityEditor.Graphs.AnimatorControllerTool";
-            }
-
             if (assetType == typeof(MonoScript))
             {
                 return "cs Script Icon";
             }
 
-            if (assetType == typeof(System.Reflection.Assembly))
-            {
-                return "dll Script Icon";
-            }
-
-            if (assetType == typeof(Material))
-            {
-                return "Material Icon";
-            }
-
-            if (assetType == typeof(AudioClip))
-            {
-                return "AudioClip Icon";
-            }
-
-            if (assetType == typeof(DefaultAsset))
-            {
-                return "Folder Icon";
-            }
-
-            if (assetType == typeof(GameObject))
-            {
-#if UNITY_2018_3_OR_NEWER
-                return "d_Prefab Icon";
-#else
-        return "PrefabNormal Icon";
-#endif
-            }
-
-            if (assetType == typeof(TextAsset))
-            {
-                return "TextAsset Icon";
-            }
-
-            if (assetType == typeof(SceneAsset))
-            {
-                return "SceneAsset Icon";
-            }
-
-            if (assetType == typeof(StyleSheet))
-            {
-                return "UssScript Icon";
-            }
-
-            if (assetType == typeof(VisualTreeAsset))
-            {
-                return "UxmlScript Icon";
-            }
-
-            return "DefaultAsset Icon";
+            return string.Empty;
         }
 
 #region IO Helpers

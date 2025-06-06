@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using UnityEditor;
 
+using UnityEngine;
 using UnityEngine.UIElements;
 
 using Utils = IEDLabs.EditorUtilities.SelectionTrackerUtils;
@@ -14,13 +15,20 @@ namespace IEDLabs.EditorUtilities
         private MultiColumnListView mcList;
         private List<SelectionEntry> listSource;
         private Action<SelectionEntry> onButtonClick;
+        private Action<SelectionEntry> onRemoveMissingClick;
 
-        public MclView(List<SelectionEntry> itemsSource, string title, string buttonText, Action<SelectionEntry> onClick)
+        public MclView(
+            List<SelectionEntry> itemsSource,
+            string title,
+            string buttonText,
+            Action<SelectionEntry> onClick,
+            Action<SelectionEntry> onMissingClickToRemove)
         {
             var container = Utils.LoadMatchingUxml(nameof(MclView));
             container.CloneTree(this);
             listSource = itemsSource;
             onButtonClick = onClick;
+            onRemoveMissingClick = onMissingClickToRemove;
             BuildMclView(title, buttonText);
         }
 
@@ -42,6 +50,7 @@ namespace IEDLabs.EditorUtilities
                 var entry = listSource[index];
                 var button = element as CellButton;
                 var icon = Utils.GetBgForAsset(entry.guid);
+                entry.isNull = !icon.texture;
                 button.SetupCellButton(entry.objectName, icon.texture, () => PingAsset(entry.guid));
             };
 
@@ -50,10 +59,20 @@ namespace IEDLabs.EditorUtilities
             {
                 var entry = listSource[index];
                 var button = element as Button;
-                button.text = buttonText;
-
                 button.clicked -= () => onButtonClick?.Invoke(entry); // Remove previous lambda
-                button.clicked += () => onButtonClick?.Invoke(entry);
+                button.clicked -= () => onRemoveMissingClick?.Invoke(entry);
+                if (entry.isNull)
+                {
+                    button.text = "(missing - click to remove)";
+                    button.style.backgroundColor = Color.red * .8f;
+                    button.clicked += () => onRemoveMissingClick?.Invoke(entry);
+                }
+                else
+                {
+                    button.text = buttonText;
+                    button.style.backgroundColor = Color.cyan * .35f;
+                    button.clicked += () => onButtonClick?.Invoke(entry);
+                }
             };
 
             mcList.columns["time"].makeCell = () => new Label();

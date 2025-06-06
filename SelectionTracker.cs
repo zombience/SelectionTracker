@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reflection;
 
 using UnityEditor;
 using UnityEngine;
@@ -57,8 +58,8 @@ namespace IEDLabs.EditorUtilities
             selectionData = Utils.LoadSelectionHistory();
             rootVisualElement.Add(root);
 
-            pinnedView = new (selectionData.pinned.entries, "pinned items", "unpin", UnPinEntry);
-            historyView = new (selectionData.history.entries, "selection history", "pin", PinEntry);
+            pinnedView = new (selectionData.pinned.entries, "pinned items", "unpin", UnPinEntry, RemoveMissingEntry);
+            historyView = new (selectionData.history.entries, "selection history", "pin", PinEntry, RemoveMissingEntry);
 
             var splitView = new TwoPaneSplitView(0, 200, TwoPaneSplitViewOrientation.Vertical)
             {
@@ -110,12 +111,50 @@ namespace IEDLabs.EditorUtilities
             RefreshViews();
         }
 
+        private void RemoveMissingEntry(SelectionEntry entryToRemove)
+        {
+            UnPinEntry(entryToRemove);
+            selectionData.history.entries.RemoveAll(e => e.guid == entryToRemove.guid);
+        }
+
         private void RefreshViews()
         {
             pinnedView?.RefreshView();
             historyView?.RefreshView();
+            GetEditorAssetBundleImages();
         }
 
 #endregion // selection handling
+
+#region icon lookup
+
+        private void BuildIconLookup()
+        {
+            var allIcons = GetEditorAssetBundleImages()
+                // .Where(i => _iconPathsBlacklist.All(p => !i.assetBundlePath.StartsWith(p)))
+                // .Where(i => _iconBlacklist.All(n => i.name != n))
+                .Where(i => !i.ToLower().EndsWith(".small"))
+                .ToArray();
+        }
+
+        private static string[] GetEditorAssetBundleImages()
+        {
+            var editorGUIUtility = typeof(EditorGUIUtility);
+            var getEditorAssetBundle = editorGUIUtility.GetMethod(
+            "GetEditorAssetBundle",
+            BindingFlags.NonPublic | BindingFlags.Static);
+
+            var bundle = (AssetBundle)getEditorAssetBundle.Invoke(null, null);
+
+            var n =  bundle.GetAllAssetNames().ToArray();
+            return n;
+
+            // return (from path in bundle.GetAllAssetNames()
+            //     let tex = EditorAssetBundle.LoadAsset<Texture2D>(path)
+            //     where tex != null
+            //     select new EditorAssetBundleImage(tex, path)).ToArray();
+        }
+
+#endregion
     }
 }
