@@ -1,11 +1,10 @@
 using System.Linq;
 
-using UnityEngine;
 using UnityEditor;
-
+using UnityEngine;
 using UnityEngine.UIElements;
 
-using Button = UnityEngine.UIElements.Button;
+using Utils = IEDLabs.EditorUtilities.SelectionTrackerUtils;
 
 namespace IEDLabs.EditorUtilities
 {
@@ -41,7 +40,6 @@ namespace IEDLabs.EditorUtilities
             }
 
             root = visualTree.Instantiate();
-            root.Add(new Button(BuildDisplay));
             BuildDisplay();
             Selection.selectionChanged += OnSelectionChange;
         }
@@ -49,21 +47,31 @@ namespace IEDLabs.EditorUtilities
         private void OnDestroy()
         {
             Selection.selectionChanged -= OnSelectionChange;
-            SelectionTrackerUtils.SaveSelectionHistory(selectionData);
+            Utils.SaveSelectionHistory(selectionData);
         }
 
 #endregion // window lifecycle
 
         private void BuildDisplay()
         {
-            selectionData = SelectionTrackerUtils.LoadSelectionHistory();
+            selectionData = Utils.LoadSelectionHistory();
             rootVisualElement.Add(root);
 
-            pinnedView = new MclView(selectionData.pinned.entries, "pinned items", "unpin", UnPinEntry);
-            root.Add(pinnedView);
+            pinnedView = new (selectionData.pinned.entries, "pinned items", "unpin", UnPinEntry);
+            historyView = new (selectionData.history.entries, "selection history", "pin", PinEntry);
 
-            historyView = new MclView(selectionData.history.entries, "selection history", "pin", PinEntry);
-            root.Add(historyView);
+            var splitView = new TwoPaneSplitView(0, 200, TwoPaneSplitViewOrientation.Vertical)
+            {
+                style =
+                {
+                    minHeight = 20,
+                    flexGrow = 1
+                }
+            };
+
+            splitView.Add(pinnedView);
+            splitView.Add(historyView);
+            rootVisualElement.Add(splitView);
         }
 
 #region selection handling
@@ -84,21 +92,21 @@ namespace IEDLabs.EditorUtilities
 
             // Debug.Log($"#EDITORWINDO# Selection changed to: {activeObject.name} (GUID: {guid})");
             selectionData.history.AddEntry(activeObject, guid);
-            SelectionTrackerUtils.SaveSelectionHistory(selectionData);
+            Utils.SaveSelectionHistory(selectionData);
             RefreshViews();
         }
 
         private void UnPinEntry(SelectionEntry entryToRemove)
         {
             selectionData.pinned.entries.RemoveAll(e => e.guid == entryToRemove.guid);
-            SelectionTrackerUtils.SaveSelectionHistory(selectionData);
+            Utils.SaveSelectionHistory(selectionData);
             RefreshViews();
         }
 
         private void PinEntry(SelectionEntry entryToPin)
         {
             selectionData.pinned.AddEntry(entryToPin);
-            SelectionTrackerUtils.SaveSelectionHistory(selectionData);
+            Utils.SaveSelectionHistory(selectionData);
             RefreshViews();
         }
 

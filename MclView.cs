@@ -3,8 +3,9 @@ using System.Collections.Generic;
 
 using UnityEditor;
 
-using UnityEngine;
 using UnityEngine.UIElements;
+
+using Utils = IEDLabs.EditorUtilities.SelectionTrackerUtils;
 
 namespace IEDLabs.EditorUtilities
 {
@@ -16,7 +17,7 @@ namespace IEDLabs.EditorUtilities
 
         public MclView(List<SelectionEntry> itemsSource, string title, string buttonText, Action<SelectionEntry> onClick)
         {
-            var container = SelectionTrackerUtils.LoadMatchingUxml(nameof(MclView));
+            var container = Utils.LoadMatchingUxml(nameof(MclView));
             container.CloneTree(this);
             listSource = itemsSource;
             onButtonClick = onClick;
@@ -40,7 +41,7 @@ namespace IEDLabs.EditorUtilities
             {
                 var entry = listSource[index];
                 var button = element as CellButton;
-                var icon = SelectionTrackerUtils.GetBgForAsset(entry.guid);
+                var icon = Utils.GetBgForAsset(entry.guid);
                 button.SetupCellButton(entry.objectName, icon.texture, () => PingAsset(entry.guid));
             };
 
@@ -65,7 +66,7 @@ namespace IEDLabs.EditorUtilities
             };
         }
 
-        private void PingAsset(string guid)
+        private static void PingAsset(string guid)
         {
             var obj = AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid));
             EditorGUIUtility.PingObject(obj);
