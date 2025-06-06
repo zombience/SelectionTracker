@@ -1,15 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
 using UnityEditor;
-using UnityEditor.UIElements;
 
 using UnityEngine;
 using UnityEngine.UIElements;
-
-using Object = UnityEngine.Object;
 
 namespace IEDLabs.EditorUtilities
 {
@@ -19,12 +14,12 @@ namespace IEDLabs.EditorUtilities
         private List<SelectionEntry> listSource;
         private Action<SelectionEntry> onButtonClick;
 
-        public MclView(List<SelectionEntry> itemsSource, string title, string buttonText, Action<SelectionEntry> buttonAction)
+        public MclView(List<SelectionEntry> itemsSource, string title, string buttonText, Action<SelectionEntry> onClick)
         {
-            var container = LoadUxml();
+            var container = SelectionTrackerUtils.LoadMatchingUxml(nameof(MclView));
             container.CloneTree(this);
             listSource = itemsSource;
-            onButtonClick = buttonAction;
+            onButtonClick = onClick;
             BuildMclView(title, buttonText);
         }
 
@@ -40,23 +35,13 @@ namespace IEDLabs.EditorUtilities
             mcList.itemsSource = listSource;
             mcList.headerTitle = title;
 
-            mcList.columns["name"].makeCell = () => new Label();
-            mcList.columns["name"].bindCell = (element, index) =>
-            {
-                var entry = listSource[index];
-                var label = element as Label;
-                label.text = entry.objectName;
-            };
-
-            mcList.columns["asset"].makeCell = () => new Button();
+            mcList.columns["asset"].makeCell = () => new CellButton();
             mcList.columns["asset"].bindCell = (element, index) =>
             {
                 var entry = listSource[index];
-                var button = element as Button;
-                button.text = entry.objectName;
-                //var asset = AssetDatabase.GetMainAssetTypeFromGUID(new (entry.guid));
-                button.iconImage = SelectionTrackerUtils.GetBgForAsset(entry.guid);
-                button.style.alignItems = new StyleEnum<Align>(Align.FlexStart);
+                var button = element as CellButton;
+                var icon = SelectionTrackerUtils.GetBgForAsset(entry.guid);
+                button.SetupCellButton(entry.objectName, icon.texture, () => PingAsset(entry.guid));
             };
 
             mcList.columns["action"].makeCell = () => new Button();
@@ -80,24 +65,12 @@ namespace IEDLabs.EditorUtilities
             };
         }
 
-        private static VisualTreeAsset LoadUxml()
+        private void PingAsset(string guid)
         {
-            var assets = AssetDatabase
-                .FindAssets($"MclView");
-
-            var asset = assets
-                .Select(a => AssetDatabase.GUIDToAssetPath(a))
-                .FirstOrDefault(p => p.EndsWith("uxml"));
-
-            if (string.IsNullOrEmpty(asset))
-            {
-                Debug.LogError($"#SELECTION_TRACKER# couldn't find uxml file for {nameof(MclView)}");
-                return null;
-            }
-
-            return
-                AssetDatabase
-                    .LoadAssetAtPath<VisualTreeAsset>(asset);
+            var obj = AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid));
+            EditorGUIUtility.PingObject(obj);
         }
+
+
     }
 }

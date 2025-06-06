@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement style="flex-grow: 1; flex-direction: row; align-items: center;">
+        <ui:Image name="icon" style="width: 18px; height: 18px; margin-right: 5px;"/>
+        <ui:Button name="button" style="flex-grow: 1;"/>
+    </ui:VisualElement>
+</ui:UXML>

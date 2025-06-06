@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using UnityEditor;
 
@@ -110,10 +111,11 @@ namespace IEDLabs.EditorUtilities
     {
         internal static Background GetBgForAsset(string guid)
         {
-            var asset = AssetDatabase.GetMainAssetTypeFromGUID(new (guid));
+            var asset = AssetDatabase.GetMainAssetTypeFromGUID(new(guid));
             var iconFile = GetEditorIconForFile(asset);
             return Background.FromTexture2D(EditorGUIUtility.IconContent(iconFile).image as Texture2D);
         }
+
         // icon names: https://github.com/halak/unity-editor-icons
         private static string GetEditorIconForFile(Type assetType)
         {
@@ -121,41 +123,50 @@ namespace IEDLabs.EditorUtilities
             {
                 return "ScriptableObject Icon";
             }
+
             if (assetType == typeof(UnityEngine.Object))
             {
                 return "ScriptableObject Icon";
             }
+
             if (assetType == typeof(UnityEngine.Mesh) ||
-                     assetType == typeof(UnityEngine.GameObject))
+                assetType == typeof(UnityEngine.GameObject))
             {
                 return "PrefabModel Icon";
             }
+
             if (assetType ==
-                     typeof(UnityEditor.Animations.
-                         AnimatorController))
+                typeof(UnityEditor.Animations.
+                    AnimatorController))
             {
                 return "UnityEditor.Graphs.AnimatorControllerTool";
             }
+
             if (assetType == typeof(MonoScript))
             {
                 return "cs Script Icon";
             }
+
             if (assetType == typeof(System.Reflection.Assembly))
             {
                 return "dll Script Icon";
             }
+
             if (assetType == typeof(Material))
             {
                 return "Material Icon";
             }
+
             if (assetType == typeof(AudioClip))
             {
                 return "AudioClip Icon";
             }
+
             if (assetType == typeof(DefaultAsset))
             {
                 return "Folder Icon";
             }
+
             if (assetType == typeof(GameObject))
             {
 #if UNITY_2018_3_OR_NEWER
@@ -164,18 +175,22 @@ namespace IEDLabs.EditorUtilities
         return "PrefabNormal Icon";
 #endif
             }
+
             if (assetType == typeof(TextAsset))
             {
                 return "TextAsset Icon";
             }
+
             if (assetType == typeof(SceneAsset))
             {
                 return "SceneAsset Icon";
             }
+
             if (assetType == typeof(StyleSheet))
             {
                 return "UssScript Icon";
             }
+
             if (assetType == typeof(VisualTreeAsset))
             {
                 return "UxmlScript Icon";
@@ -185,22 +200,32 @@ namespace IEDLabs.EditorUtilities
         }
 
 #region IO Helpers
-#region path
 
-        private static string DataDirectory =>
-            Path.Combine(Application.persistentDataPath, "SelectionTracker", GetProjectName());
-
-        private static string FullFilePath =>
-            Path.Combine(DataDirectory, "selectionHistory.dat");
-
-        private static string GetProjectName()
+        /// <summary>
+        /// loads uxml files based on the C# class name
+        /// uxml files must be named exactly the same as C#
+        /// </summary>
+        /// <param name="className"></param>
+        /// <returns></returns>
+        internal static VisualTreeAsset LoadMatchingUxml(string className)
         {
-            string[] s = Application.dataPath.Split('/');
-            string projectName = s[s.Length - 2];
-            return projectName;
-        }
+            className = className.ToLower();
+            var assets = AssetDatabase
+                .FindAssets(className);
 
-#endregion // path
+            var asset = assets
+                .Select(a => AssetDatabase.GUIDToAssetPath(a))
+                .FirstOrDefault(p => p.ToLower().EndsWith($"{className}.uxml"));
+
+            if (!string.IsNullOrEmpty(asset))
+            {
+                return AssetDatabase .LoadAssetAtPath<VisualTreeAsset>(asset);
+            }
+
+            Debug.LogError($"#SELECTION_TRACKER# couldn't find uxml file for {className}");
+            return null;
+
+        }
 
         internal static void SaveSelectionHistory(SelectionTrackerData selectionDataObj)
         {
@@ -212,6 +237,7 @@ namespace IEDLabs.EditorUtilities
 
             using StreamWriter sw = new(FullFilePath);
             sw.Write(jsonData);
+
             //Debug.Log($"#SELECTION_TRACKER# writing data to {FullFilePath}");
         }
 
@@ -250,6 +276,25 @@ namespace IEDLabs.EditorUtilities
             using FileStream fileStream = File.Open(FullFilePath, FileMode.Open);
             fileStream.SetLength(0L);
         }
-    }
+
+
+#region path
+
+        private static string DataDirectory =>
+            Path.Combine(Application.persistentDataPath, "SelectionTracker", GetProjectName());
+
+        private static string FullFilePath =>
+            Path.Combine(DataDirectory, "selectionHistory.dat");
+
+        private static string GetProjectName()
+        {
+            string[] s = Application.dataPath.Split('/');
+            string projectName = s[s.Length - 2];
+            return projectName;
+        }
+
+#endregion // path
 #endregion // IO Helpers
+
+    }
 }
