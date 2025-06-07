@@ -56,6 +56,7 @@ namespace IEDLabs.EditorUtilities
         {
             if (entries.Contains(entry))
             {
+                entry.lastSelected = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                 return false;
             }
 
@@ -185,7 +186,7 @@ namespace IEDLabs.EditorUtilities
             using StreamWriter sw = new(FullFilePath);
             sw.Write(jsonData);
 
-            //Debug.Log($"#SELECTION_TRACKER# writing data to {FullFilePath}");
+            Debug.Log($"#SELECTION_TRACKER# writing data to {FullFilePath}");
         }
 
         internal static SelectionTrackerData LoadSelectionHistory()
