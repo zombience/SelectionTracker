@@ -1,5 +1,8 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -145,15 +148,16 @@ namespace IEDLabs.EditorUtilities
             timeoutTask = Task.Run(AwaitTimeout, cts.Token);
             timeoutTask.ContinueWith(t =>
             {
-                if (t.IsCompletedSuccessfully)
-                {
-                    Debug.Log("#SELECTION_TRACKER#: Async task completed successfully (final state check).");
-                }
-                else if (t.IsCanceled)
-                {
-                    Debug.Log("#SELECTION_TRACKER#: Async task was cancelled (final state check).");
-                }
-                else if (t.IsFaulted)
+                // if (t.IsCompletedSuccessfully)
+                // {
+                //     Debug.Log("#SELECTION_TRACKER#: Async task completed successfully (final state check).");
+                // }
+                // else if (t.IsCanceled)
+                // {
+                //     Debug.Log("#SELECTION_TRACKER#: Async task was cancelled (final state check).");
+                // }
+                // else
+                if (t.IsFaulted)
                 {
                     Debug.LogError($"#SELECTION_TRACKER#: Async task failed (final state check): {t.Exception?.InnerException?.Message ?? t.Exception?.Message}");
                 }
@@ -166,15 +170,13 @@ namespace IEDLabs.EditorUtilities
         {
             try
             {
-                Debug.Log($"TaskManagerExample: Async task started at {DateTime.Now.ToLongTimeString()} on thread {Thread.CurrentThread.ManagedThreadId}. Waiting for {autoSaveInterval} seconds...");
+                //Debug.Log($"TaskManagerExample: Async task started at {DateTime.Now.ToLongTimeString()} on thread {Thread.CurrentThread.ManagedThreadId}. Waiting for {autoSaveInterval} seconds...");
                 await Task.Delay(TimeSpan.FromSeconds(autoSaveInterval), cts.Token);
                 cts.Token.ThrowIfCancellationRequested();
-
-                EditorApplication.delayCall += SaveAfterTimeout;
             }
             catch (OperationCanceledException)
             {
-                Debug.Log("TaskManagerExample: Task was explicitly cancelled.");
+                //Debug.Log("#SELECTION_TRACKER#: Task was explicitly cancelled.");
             }
             catch (Exception ex)
             {
@@ -184,6 +186,7 @@ namespace IEDLabs.EditorUtilities
             {
                 cts?.Dispose();
                 cts = null;
+                EditorApplication.delayCall += SaveAfterTimeout;
             }
         }
 
@@ -191,8 +194,6 @@ namespace IEDLabs.EditorUtilities
         {
             Utils.SaveSelectionHistory(selectionData);
         }
-
-
 #endregion // selection handling
     }
 }

@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 
 using UnityEditor;
-
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -97,38 +96,78 @@ namespace IEDLabs.EditorUtilities
 
     internal static class SelectionTrackerUtils
     {
+        // icon names: https://github.com/halak/unity-editor-icons
+        // https://github.com/ErnSur/unity-editor-icons
         internal static Background GetBgForAsset(string guid)
         {
             string assetPath = AssetDatabase.GUIDToAssetPath(guid);
             Type assetType = AssetDatabase.GetMainAssetTypeAtPath(assetPath);
-            var specialCaseIconName = CheckSpecialTypes(assetType);
-            Texture2D icon;
-            if (!string.IsNullOrEmpty(specialCaseIconName))
+            GUIContent content;
+
+            if (assetType == typeof(DefaultAsset))
             {
-                icon = EditorGUIUtility.IconContent(specialCaseIconName).image as Texture2D;
+                content = EditorGUIUtility.IconContent("Folder Icon");
             }
             else
             {
-                GUIContent content = EditorGUIUtility.ObjectContent(null, assetType);
-                icon = content.image as Texture2D;
+                var shoudLoadObj = ShouldGetIconFromLoadedObject(assetPath.Split(".")[^1]);
+                // most icons can be loaded by type and don't require the loaded object
+                Object objToLoad = shoudLoadObj ? AssetDatabase.LoadAssetAtPath<Object>(assetPath) : null;
+                content = EditorGUIUtility.ObjectContent(objToLoad, assetType);
             }
+
+            Texture2D icon = content.image as Texture2D;
             return Background.FromTexture2D(icon);
         }
 
-        // icon names: https://github.com/halak/unity-editor-icons
-        // https://github.com/ErnSur/unity-editor-icons
-        private static string CheckSpecialTypes(Type assetType)
+        /// <summary>
+        /// only load specific objects:
+        /// some assets load incorrect icons if only passing EditorGUIUtility.ObjectConcent(null, assetType)
+        /// loading all assets each time UI is interacted with is unnecessary
+        /// </summary>
+        /// <param name="extension"></param>
+        /// <returns></returns>
+        private static bool ShouldGetIconFromLoadedObject(string extension)
         {
-            if (assetType == typeof(DefaultAsset))
+            switch (extension)
             {
-                return "Folder Icon";
-            }
-            if (assetType == typeof(MonoScript))
-            {
-                return "cs Script Icon";
+                case "asset":
+                case "cs":
+                case "inputactions":
+                case "shadergraph":
+                    return true;
             }
 
-            return string.Empty;
+            return false;
+        }
+
+
+
+        private static string CheckSpecialTypes(Type assetType, string extension)
+        {
+
+            // these cases fail when using type lookup
+            // .asset files are interpreted as MonoScript
+            // Known missing extension match: inputactions
+            var iconName = string.Empty;
+            switch (extension)
+            {
+                case "cs":
+                    iconName = "cs Script Icon";
+                    break;
+                case "asset":
+                    iconName = "ScriptableObject Icon";
+                    break;
+                case "inputactions":
+                    return iconName;
+            }
+
+            if (assetType == typeof(DefaultAsset))
+            {
+                iconName = "Folder Icon";
+            }
+
+            return iconName;
         }
 
 #region IO Helpers
@@ -169,8 +208,7 @@ namespace IEDLabs.EditorUtilities
 
             using StreamWriter sw = new(FullFilePath);
             sw.Write(jsonData);
-
-            Debug.Log($"#SELECTION_TRACKER# writing data to {FullFilePath}");
+            //Debug.Log($"#SELECTION_TRACKER# writing data to {FullFilePath}");
         }
 
         internal static SelectionTrackerData LoadSelectionHistory()
@@ -183,8 +221,7 @@ namespace IEDLabs.EditorUtilities
             }
 
             using var streamReader = new StreamReader(FullFilePath);
-            string contents;
-            contents = streamReader.ReadToEnd();
+            string contents = streamReader.ReadToEnd();
             try
             {
                 returnObject = JsonUtility.FromJson<SelectionTrackerData>(contents);
@@ -212,6 +249,17 @@ namespace IEDLabs.EditorUtilities
 
 #region path
 
+        internal class Storage
+        {
+            public List<string> list;
+        }
+        public static void WriteData(List<string> list)
+        {
+            var st = new Storage() { list = list };
+            var json = JsonUtility.ToJson(st, true);
+            using StreamWriter sw = new(Path.Combine(DataDirectory, "names.json"));
+            sw.Write(json);
+        }
         private static string DataDirectory =>
             Path.Combine(Application.persistentDataPath, "SelectionTracker", GetProjectName());
 
@@ -221,7 +269,7 @@ namespace IEDLabs.EditorUtilities
         private static string GetProjectName()
         {
             string[] s = Application.dataPath.Split('/');
-            string projectName = s[s.Length - 2];
+            string projectName = s[^2];
             return projectName;
         }
 
