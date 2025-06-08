@@ -5,31 +5,41 @@ namespace IEDLabs.EditorUtilities
 {
     public class CellButton : VisualElement
     {
+        public Button Button => button;
+        private Button button;
         private System.Action onButtonClick;
 
-        public CellButton()
+        public CellButton(bool includeIcon = true)
         {
             var container = SelectionTrackerUtils.LoadMatchingUxml(nameof(CellButton));
             container.CloneTree(this);
+            button = this.Q<Button>("button");
+            button.clicked += ExecuteButtonClick;
+
+            if (!includeIcon)
+            {
+                var image = this.Q<Image>("icon");
+                image.RemoveFromHierarchy();
+            }
         }
 
         public void SetText(string buttonText)
         {
-            var button = this.Q<Button>("button");
             button.text = buttonText;
         }
 
         public void SetImage(Texture icon)
         {
             var image = this.Q<Image>("icon");
+            if (image == null)
+            {
+                return;
+            }
             image.image = icon;
         }
 
         public void SetButtonAction(System.Action onClick)
         {
-            var button = this.Q<Button>("button");
-            button.clicked -= onButtonClick;
-            button.clicked += onClick;
             onButtonClick = onClick;
         }
 
@@ -38,6 +48,11 @@ namespace IEDLabs.EditorUtilities
             SetText(buttonText);
             SetImage(icon);
             SetButtonAction(onClick);
+        }
+
+        private void ExecuteButtonClick()
+        {
+            onButtonClick?.Invoke();
         }
     }
 }

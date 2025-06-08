@@ -48,30 +48,32 @@ namespace IEDLabs.EditorUtilities
             mcList.columns["asset"].bindCell = (element, index) =>
             {
                 var entry = listSource[index];
-                var button = element as CellButton;
+                var cellButton = element as CellButton;
                 var icon = Utils.GetBgForAsset(entry.guid);
+
                 entry.isNull = !icon.texture;
-                button.SetupCellButton(entry.objectName, icon.texture, () => PingAsset(entry.guid));
+                float opacity = entry.isNull ? 0.5f : 1.0f;
+
+                cellButton.SetupCellButton(entry.objectName, icon.texture, () => PingAsset(entry.guid));
+                cellButton.style.opacity = opacity;
             };
 
-            mcList.columns["action"].makeCell = () => new Button();
+            mcList.columns["action"].makeCell = () => new CellButton(false);
             mcList.columns["action"].bindCell = (element, index) =>
             {
                 var entry = listSource[index];
-                var button = element as Button;
-                button.clicked -= () => onButtonClick?.Invoke(entry); // Remove previous lambda
-                button.clicked -= () => onRemoveMissingClick?.Invoke(entry);
+                var cellButton = element as CellButton;
                 if (entry.isNull)
                 {
-                    button.text = "(missing - click to remove)";
-                    button.style.backgroundColor = Color.red * .8f;
-                    button.clicked += () => onRemoveMissingClick?.Invoke(entry);
+                    cellButton.SetText("(missing - remove)");
+                    cellButton.Button.style.backgroundColor = Color.red * .8f;
+                    cellButton.SetButtonAction(() => onRemoveMissingClick?.Invoke(entry));
                 }
                 else
                 {
-                    button.text = buttonText;
-                    button.style.backgroundColor = Color.cyan * .35f;
-                    button.clicked += () => onButtonClick?.Invoke(entry);
+                    cellButton.SetText(buttonText);
+                    cellButton.Button.style.backgroundColor = StyleKeyword.Initial;
+                    cellButton.SetButtonAction(() => onButtonClick?.Invoke(entry));
                 }
             };
 
@@ -81,7 +83,9 @@ namespace IEDLabs.EditorUtilities
                 var entry = listSource[index];
                 var label = element as Label;
                 var dt = DateTimeOffset.FromUnixTimeSeconds(entry.lastSelected).ToLocalTime();
-                label.text = dt.ToString("HH:mm yy-MM-dd");
+                float opacity = entry.isNull ? 0.5f : 1.0f;
+                label.text = entry.isNull ? "(missing)" : dt.ToString("HH:mm:ss yy-MM-dd");
+                label.style.opacity = opacity;
             };
         }
 
@@ -90,7 +94,5 @@ namespace IEDLabs.EditorUtilities
             var obj = AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid));
             EditorGUIUtility.PingObject(obj);
         }
-
-
     }
 }

@@ -28,51 +28,35 @@ namespace IEDLabs.EditorUtilities
 
         public bool AddEntry(Object item, string itemGuid)
         {
-            // create an entry to rely on entry.GetHashCode for Contains()
             var entry = new SelectionEntry()
             {
                 guid = itemGuid,
                 objectName = item.name,
                 lastSelected = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
             };
-
-            if (entries.Contains(entry))
-            {
-                return false;
-            }
-
-            entries.Insert(0, entry);
-            //Debug.Log($"#SELECTION_TRACKER# adding entry: {entry}");
-            return true;
+            return AddEntry(entry);
         }
 
         /// <summary>
         /// allow passing formed entry from one list to another
-        /// will not add if already present
         /// </summary>
         /// <param name="entry"></param>
         /// <returns></returns>
         public bool AddEntry(SelectionEntry entry)
         {
-            if (entries.Contains(entry))
-            {
-                entry.lastSelected = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                return false;
-            }
-
+            entries.RemoveAll(e => e.guid == entry.guid);
             entries.Insert(0, entry);
             return true;
         }
 
         public bool RemoveEntry(string guid)
         {
-            SelectionEntry entry = new() { guid = guid };
-            return RemoveEntry(entry);
+            return entries.RemoveAll(e => e.guid == guid) > 0;
         }
 
         public bool RemoveEntry(SelectionEntry entry)
         {
-            return entries.RemoveAll(e => e.guid == entry.guid) > 0;
+            return RemoveEntry(entry.guid);
         }
     }
 
