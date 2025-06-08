@@ -110,7 +110,7 @@ namespace IEDLabs.EditorUtilities
             }
             else
             {
-                var shoudLoadObj = ShouldGetIconFromLoadedObject(assetPath.Split(".")[^1]);
+                bool shoudLoadObj = ShouldGetIconFromLoadedObject(assetPath.Split(".")[^1]);
                 // most icons can be loaded by type and don't require the loaded object
                 Object objToLoad = shoudLoadObj ? AssetDatabase.LoadAssetAtPath<Object>(assetPath) : null;
                 content = EditorGUIUtility.ObjectContent(objToLoad, assetType);
@@ -181,10 +181,10 @@ namespace IEDLabs.EditorUtilities
         internal static VisualTreeAsset LoadMatchingUxml(string className)
         {
             className = className.ToLower();
-            var assets = AssetDatabase
+            string[] assets = AssetDatabase
                 .FindAssets(className);
 
-            var asset = assets
+            string asset = assets
                 .Select(a => AssetDatabase.GUIDToAssetPath(a))
                 .FirstOrDefault(p => p.ToLower().EndsWith($"{className}.uxml"));
 
@@ -220,7 +220,7 @@ namespace IEDLabs.EditorUtilities
                 return returnObject;
             }
 
-            using var streamReader = new StreamReader(FullFilePath);
+            using StreamReader streamReader = new (FullFilePath);
             string contents = streamReader.ReadToEnd();
             try
             {
@@ -248,18 +248,6 @@ namespace IEDLabs.EditorUtilities
 
 
 #region path
-
-        internal class Storage
-        {
-            public List<string> list;
-        }
-        public static void WriteData(List<string> list)
-        {
-            var st = new Storage() { list = list };
-            var json = JsonUtility.ToJson(st, true);
-            using StreamWriter sw = new(Path.Combine(DataDirectory, "names.json"));
-            sw.Write(json);
-        }
         private static string DataDirectory =>
             Path.Combine(Application.persistentDataPath, "SelectionTracker", GetProjectName());
 

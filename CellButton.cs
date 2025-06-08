@@ -11,7 +11,7 @@ namespace IEDLabs.EditorUtilities
 
         public CellButton(bool includeIcon = true)
         {
-            var container = SelectionTrackerUtils.LoadMatchingUxml(nameof(CellButton));
+            VisualTreeAsset container = SelectionTrackerUtils.LoadMatchingUxml(nameof(CellButton));
             container.CloneTree(this);
             button = this.Q<Button>("button");
             button.clicked += ExecuteButtonClick;

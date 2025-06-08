@@ -24,7 +24,7 @@ namespace IEDLabs.EditorUtilities
             Action<SelectionEntry> onClick,
             Action<SelectionEntry> onMissingClickToRemove)
         {
-            var container = Utils.LoadMatchingUxml(nameof(MclView));
+            VisualTreeAsset container = Utils.LoadMatchingUxml(nameof(MclView));
             container.CloneTree(this);
             listSource = itemsSource;
             onButtonClick = onClick;
@@ -47,7 +47,7 @@ namespace IEDLabs.EditorUtilities
             mcList.columns["asset"].makeCell = () => new CellButton();
             mcList.columns["asset"].bindCell = (element, index) =>
             {
-                var entry = listSource[index];
+                SelectionEntry entry = listSource[index];
                 var cellButton = element as CellButton;
                 var icon = Utils.GetBgForAsset(entry.guid);
 
@@ -61,7 +61,7 @@ namespace IEDLabs.EditorUtilities
             mcList.columns["action"].makeCell = () => new CellButton(false);
             mcList.columns["action"].bindCell = (element, index) =>
             {
-                var entry = listSource[index];
+                SelectionEntry entry = listSource[index];
                 var cellButton = element as CellButton;
                 if (entry.isNull)
                 {
@@ -80,7 +80,7 @@ namespace IEDLabs.EditorUtilities
             mcList.columns["time"].makeCell = () => new Label();
             mcList.columns["time"].bindCell = (element, index) =>
             {
-                var entry = listSource[index];
+                SelectionEntry entry = listSource[index];
                 var label = element as Label;
                 var dt = DateTimeOffset.FromUnixTimeSeconds(entry.lastSelected).ToLocalTime();
                 float opacity = entry.isNull ? 0.5f : 1.0f;
