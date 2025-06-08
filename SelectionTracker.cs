@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,10 +66,11 @@ namespace IEDLabs.EditorUtilities
         private void BuildDisplay()
         {
             selectionData = Utils.LoadSelectionHistory();
-            rootVisualElement.Add(root);
+            selectionData.history.RemoveExcessItems();
 
-            pinnedView = new (selectionData.pinned.entries, "pinned items", "unpin", UnPinEntry, RemoveMissingEntry);
-            historyView = new (selectionData.history.entries, "selection history", "pin", PinEntry, RemoveMissingEntry);
+            rootVisualElement.Add(root);
+            pinnedView = new  MclView(selectionData.pinned.entries, "pinned items", "unpin", UnPinEntry, RemoveMissingEntry);
+            historyView = new MclView(selectionData.history.entries, "selection history", "pin", PinEntry, RemoveMissingEntry);
 
             var splitView = new TwoPaneSplitView(0, 200, TwoPaneSplitViewOrientation.Vertical)
             {
@@ -99,7 +97,7 @@ namespace IEDLabs.EditorUtilities
             }
 
             // only handle assets from project window
-            if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(activeObject, out var guid, out long id))
+            if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(activeObject, out string guid, out long id))
             {
                 return;
             }
