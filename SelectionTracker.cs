@@ -23,8 +23,7 @@ namespace IEDLabs.EditorUtilities
             pinnedView,
             historyView;
 
-        private const int autoSaveInterval = 10;
-        private DateTime lastInteractionTime;
+        private const int interactionTimeoutInterval = 10;
         private Task timeoutTask;
         private CancellationTokenSource cts;
 
@@ -59,7 +58,7 @@ namespace IEDLabs.EditorUtilities
         {
             Selection.selectionChanged -= OnSelectionChange;
             Utils.SaveSelectionHistory(selectionData);
-            cts.Cancel();
+            cts?.Cancel();
         }
 
 #endregion // window lifecycle
@@ -67,6 +66,7 @@ namespace IEDLabs.EditorUtilities
         private void BuildDisplay()
         {
             selectionData = Utils.LoadSelectionHistory();
+            selectionData.history.HistoryLength = selectionData.historyLength;
             selectionData.history.RemoveExcessItems();
 
             rootVisualElement.Add(root);
@@ -82,9 +82,24 @@ namespace IEDLabs.EditorUtilities
                 }
             };
 
+            var historyContainer = new VisualElement();
+            // container is styled in UIBuilder but should be organized under dynamically created splitview
+            var utilContainer = root.Q<VisualElement>("utilContainer");
+            utilContainer.RemoveFromHierarchy();
+            historyContainer.Add(utilContainer);
+            historyContainer.Add(historyView);
             splitView.Add(pinnedView);
-            splitView.Add(historyView);
+            splitView.Add(historyContainer);
             rootVisualElement.Add(splitView);
+
+            var button = utilContainer.Q<Button>("clearhistory");
+            button.clicked -= ClearHistory;
+            button.clicked += ClearHistory;
+
+            var slider = utilContainer.Q<SliderInt>("historylength");
+            slider.SetValueWithoutNotify(selectionData.historyLength);
+            slider.UnregisterValueChangedCallback(SetHistoryLength);
+            slider.RegisterValueChangedCallback(SetHistoryLength);
         }
 
 #region selection handling
@@ -108,32 +123,9 @@ namespace IEDLabs.EditorUtilities
             RefreshViews();
         }
 
-        private void UnPinEntry(SelectionEntry entryToRemove)
-        {
-            selectionData.pinned.entries.RemoveAll(e => e.guid == entryToRemove.guid);
-            RefreshViews();
-        }
 
-        private void PinEntry(SelectionEntry entryToPin)
-        {
-            selectionData.pinned.AddEntry(entryToPin);
-            RefreshViews();
-        }
 
-        private void RemoveMissingEntry(SelectionEntry entryToRemove)
-        {
-            selectionData.history.entries.RemoveAll(e => e.guid == entryToRemove.guid);
-            UnPinEntry(entryToRemove);
-        }
-
-        private void RefreshViews()
-        {
-            pinnedView?.RefreshView();
-            historyView?.RefreshView();
-            HandleInteraction();
-        }
-
-        private void HandleInteraction()
+        private void HandleInteraction(int timeout)
         {
             // let task run to completion
             if (timeoutTask is { IsCompleted: false, IsFaulted: false })
@@ -141,10 +133,9 @@ namespace IEDLabs.EditorUtilities
                 return;
             }
 
-            lastInteractionTime = DateTime.UtcNow;
             cts?.Dispose();
             cts = new CancellationTokenSource();
-            timeoutTask = Task.Run(AwaitTimeout, cts.Token);
+            timeoutTask = Task.Run(() => AwaitTimeout(timeout), cts.Token);
             timeoutTask.ContinueWith(t =>
             {
                 // if (t.IsCompletedSuccessfully)
@@ -165,12 +156,12 @@ namespace IEDLabs.EditorUtilities
             });
         }
 
-        private async Task AwaitTimeout()
+        private async Task AwaitTimeout(int timeout)
         {
             try
             {
-                //Debug.Log($"TaskManagerExample: Async task started at {DateTime.Now.ToLongTimeString()} on thread {Thread.CurrentThread.ManagedThreadId}. Waiting for {autoSaveInterval} seconds...");
-                await Task.Delay(TimeSpan.FromSeconds(autoSaveInterval), cts.Token);
+                //Debug.Log($"TaskManagerExample: Async task started at {DateTime.Now.ToLongTimeString()} on thread {Thread.CurrentThread.ManagedThreadId}. Waiting for {interactionTimeoutInterval} seconds...");
+                await Task.Delay(TimeSpan.FromSeconds(timeout), cts.Token);
                 cts.Token.ThrowIfCancellationRequested();
             }
             catch (OperationCanceledException)
@@ -194,5 +185,48 @@ namespace IEDLabs.EditorUtilities
             Utils.SaveSelectionHistory(selectionData);
         }
 #endregion // selection handling
+
+#region child callbacks
+        private void UnPinEntry(SelectionEntry entryToRemove)
+        {
+            selectionData.pinned.entries.RemoveAll(e => e.guid == entryToRemove.guid);
+            RefreshViews();
+        }
+
+        private void PinEntry(SelectionEntry entryToPin)
+        {
+            selectionData.pinned.AddEntry(entryToPin);
+            RefreshViews();
+        }
+
+        private void RemoveMissingEntry(SelectionEntry entryToRemove)
+        {
+            selectionData.history.entries.RemoveAll(e => e.guid == entryToRemove.guid);
+            UnPinEntry(entryToRemove);
+        }
+
+        private void RefreshViews(int timeout = interactionTimeoutInterval)
+        {
+            selectionData.history.RemoveExcessItems();
+            pinnedView?.RefreshView();
+            historyView?.RefreshView();
+            HandleInteraction(timeout);
+        }
+
+        private void ClearHistory()
+        {
+            selectionData.history.entries.Clear();
+            RefreshViews();
+        }
+
+        private void SetHistoryLength(ChangeEvent<int> evt)
+        {
+            selectionData.historyLength = evt.newValue;
+            selectionData.history.HistoryLength = evt.newValue;
+            cts?.Cancel();
+            RefreshViews(1);
+        }
+
+#endregion
     }
 }

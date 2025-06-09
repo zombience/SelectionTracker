@@ -14,7 +14,8 @@ namespace IEDLabs.EditorUtilities
     [Serializable]
     public class SelectionTrackerData
     {
-        public static int HistoryLength = 20;
+        public int historyLength = 20;
+
         public SelectionCollection
             history = new(),
             pinned = new();
@@ -24,6 +25,7 @@ namespace IEDLabs.EditorUtilities
     public class SelectionCollection
     {
         public List<SelectionEntry> entries = new();
+        public int HistoryLength { get; set; } = -1;
 
         public bool AddEntry(Object item, string itemGuid)
         {
@@ -44,7 +46,11 @@ namespace IEDLabs.EditorUtilities
         public bool AddEntry(SelectionEntry entry)
         {
             entries.RemoveAll(e => e.guid == entry.guid);
-            RemoveExcessItems(true);
+            if (HistoryLength > 0)
+            {
+                RemoveExcessItems(true);
+            }
+
             entries.Insert(0, entry);
             return true;
         }
@@ -61,7 +67,13 @@ namespace IEDLabs.EditorUtilities
 
         public void RemoveExcessItems(bool lessOne = false)
         {
-            while (entries.Count > SelectionTrackerData.HistoryLength - (lessOne ? 1 : 0))
+            int less = lessOne ? 1 : 0;
+            if (entries.Count - less <= 0)
+            {
+                return;
+            }
+
+            while (entries.Count > HistoryLength - less)
             {
                 entries.RemoveAt(entries.Count - 1);
             }

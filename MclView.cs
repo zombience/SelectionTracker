@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using UnityEditor;
@@ -15,8 +14,9 @@ namespace IEDLabs.EditorUtilities
     {
         private MultiColumnListView mcList;
         private SelectionCollection listSource;
-        private Action<SelectionEntry> onButtonClick;
-        private Action<SelectionEntry> onRemoveMissingClick;
+        private Action<SelectionEntry>
+            onButtonClick,
+            onRemoveMissingClick;
 
         private bool
             shouldReverseNameSort,
