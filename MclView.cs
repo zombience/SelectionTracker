@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using UnityEditor;
 
@@ -13,12 +14,17 @@ namespace IEDLabs.EditorUtilities
     public class MclView : VisualElement
     {
         private MultiColumnListView mcList;
-        private List<SelectionEntry> listSource;
+        private SelectionCollection listSource;
         private Action<SelectionEntry> onButtonClick;
         private Action<SelectionEntry> onRemoveMissingClick;
 
+        private bool
+            shouldReverseNameSort,
+            shouldReverseMissingSort,
+            shouldReverseTimeSort;
+
         public MclView(
-            List<SelectionEntry> itemsSource,
+            SelectionCollection itemsSource,
             string title,
             string buttonText,
             Action<SelectionEntry> onClick,
@@ -41,13 +47,23 @@ namespace IEDLabs.EditorUtilities
         {
             mcList = this.Q<MultiColumnListView>("mclView");
 
-            mcList.itemsSource = listSource;
+            mcList.itemsSource = listSource.entries;
             mcList.headerTitle = title;
+
+            mcList.columns["asset"].makeHeader = () => new CellButton(false);
+            mcList.columns["asset"].bindHeader = (element) =>
+            {
+                var header = element as CellButton;
+                header.tooltip = "click to sort by name";
+                header.SetText("Asset");
+                header.SetButtonAction(SortByName);
+                header.Button.style.backgroundColor = Color.black;
+            };
 
             mcList.columns["asset"].makeCell = () => new CellButton();
             mcList.columns["asset"].bindCell = (element, index) =>
             {
-                SelectionEntry entry = listSource[index];
+                SelectionEntry entry = listSource.entries[index];
                 var cellButton = element as CellButton;
                 var icon = Utils.GetBgForAsset(entry.guid);
 
@@ -58,10 +74,20 @@ namespace IEDLabs.EditorUtilities
                 cellButton.style.opacity = opacity;
             };
 
+            mcList.columns["action"].makeHeader = () => new CellButton(false);
+            mcList.columns["action"].bindHeader = (element) =>
+            {
+                var header = element as CellButton;
+                header.tooltip = "click to sort by missing";
+                header.SetText("Action");
+                header.SetButtonAction(SortByMissing);
+                header.Button.style.backgroundColor = Color.black;
+            };
+
             mcList.columns["action"].makeCell = () => new CellButton(false);
             mcList.columns["action"].bindCell = (element, index) =>
             {
-                SelectionEntry entry = listSource[index];
+                SelectionEntry entry = listSource.entries[index];
                 var cellButton = element as CellButton;
                 if (entry.isNull)
                 {
@@ -77,16 +103,68 @@ namespace IEDLabs.EditorUtilities
                 }
             };
 
+            mcList.columns["time"].makeHeader = () => new CellButton(false);
+            mcList.columns["time"].bindHeader = (element) =>
+            {
+                var header = element as CellButton;
+                header.tooltip = "click to sort by selected time";
+                header.SetText("Last Selected");
+                header.SetButtonAction(SortByTime);
+                header.Button.style.backgroundColor = Color.black;
+            };
+
             mcList.columns["time"].makeCell = () => new Label();
             mcList.columns["time"].bindCell = (element, index) =>
             {
-                SelectionEntry entry = listSource[index];
+                SelectionEntry entry = listSource.entries[index];
                 var label = element as Label;
                 var dt = DateTimeOffset.FromUnixTimeSeconds(entry.lastSelected).ToLocalTime();
                 float opacity = entry.isNull ? 0.5f : 1.0f;
                 label.text = entry.isNull ? "(missing)" : dt.ToString("HH:mm:ss yy-MM-dd");
                 label.style.opacity = opacity;
             };
+        }
+
+        private void SortByName()
+        {
+            listSource.entries = listSource.entries.OrderBy(e => e.objectName).ToList();
+            if (shouldReverseNameSort)
+            {
+                listSource.entries.Reverse();
+                shouldReverseMissingSort = false;
+                shouldReverseTimeSort = false;
+            }
+
+            shouldReverseNameSort = !shouldReverseNameSort;
+            RefreshView();
+        }
+
+        private void SortByMissing()
+        {
+            listSource.entries = listSource.entries.OrderBy(e => e.isNull).ToList();
+            if (shouldReverseMissingSort)
+            {
+                listSource.entries.Reverse();
+                shouldReverseNameSort = false;
+                shouldReverseTimeSort = false;
+            }
+
+            shouldReverseMissingSort = !shouldReverseMissingSort;
+            RefreshView();
+        }
+
+        private void SortByTime()
+        {
+            listSource.entries = listSource.entries.OrderBy(e => e.lastSelected).ToList();
+            if (shouldReverseTimeSort)
+            {
+                listSource.entries.Reverse();
+                shouldReverseNameSort = false;
+                shouldReverseMissingSort = false;
+            }
+
+            shouldReverseTimeSort = !shouldReverseTimeSort;
+            RefreshView();
         }
 
         private static void PingAsset(string guid)

@@ -52,6 +52,7 @@ namespace IEDLabs.EditorUtilities
             root = visualTree.Instantiate();
             BuildDisplay();
             Selection.selectionChanged += OnSelectionChange;
+            cts = new CancellationTokenSource();
         }
 
         private void OnDestroy()
@@ -69,8 +70,8 @@ namespace IEDLabs.EditorUtilities
             selectionData.history.RemoveExcessItems();
 
             rootVisualElement.Add(root);
-            pinnedView = new  MclView(selectionData.pinned.entries, "pinned items", "unpin", UnPinEntry, RemoveMissingEntry);
-            historyView = new MclView(selectionData.history.entries, "selection history", "pin", PinEntry, RemoveMissingEntry);
+            pinnedView = new  MclView(selectionData.pinned, "pinned items", "unpin", UnPinEntry, RemoveMissingEntry);
+            historyView = new MclView(selectionData.history, "selection history", "pin", PinEntry, RemoveMissingEntry);
 
             var splitView = new TwoPaneSplitView(0, 200, TwoPaneSplitViewOrientation.Vertical)
             {
@@ -142,7 +143,7 @@ namespace IEDLabs.EditorUtilities
 
             lastInteractionTime = DateTime.UtcNow;
             cts?.Dispose();
-            cts = new();
+            cts = new CancellationTokenSource();
             timeoutTask = Task.Run(AwaitTimeout, cts.Token);
             timeoutTask.ContinueWith(t =>
             {
