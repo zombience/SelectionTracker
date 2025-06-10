@@ -23,6 +23,7 @@ namespace IEDLabs.EditorUtilities
             pinnedView,
             historyView;
 
+        // use to prevent writing updated file to disk after every single interaction
         private const int interactionTimeoutInterval = 10;
         private Task timeoutTask;
         private CancellationTokenSource cts;
@@ -70,28 +71,12 @@ namespace IEDLabs.EditorUtilities
             selectionData.history.RemoveExcessItems();
 
             rootVisualElement.Add(root);
-            pinnedView = new  MclView(selectionData.pinned, "pinned items", "unpin", UnPinEntry, RemoveMissingEntry);
-            historyView = new MclView(selectionData.history, "selection history", "pin", PinEntry, RemoveMissingEntry);
+            pinnedView = root.Q<MclView>("mclpinned");
+            historyView = root.Q<MclView>("mclhistory");
+            pinnedView.InitializeView(selectionData.pinned, "pinned items", "unpin", UnPinEntry, RemoveMissingEntry);
+            historyView.InitializeView(selectionData.history, "selection history", "pin", PinEntry, RemoveMissingEntry);
 
-            var splitView = new TwoPaneSplitView(0, 200, TwoPaneSplitViewOrientation.Vertical)
-            {
-                style =
-                {
-                    minHeight = 20,
-                    flexGrow = 1
-                }
-            };
-
-            var historyContainer = new VisualElement();
-            // container is styled in UIBuilder but should be organized under dynamically created splitview
             var utilContainer = root.Q<VisualElement>("utilContainer");
-            utilContainer.RemoveFromHierarchy();
-            historyContainer.Add(utilContainer);
-            historyContainer.Add(historyView);
-            splitView.Add(pinnedView);
-            splitView.Add(historyContainer);
-            rootVisualElement.Add(splitView);
-
             var button = utilContainer.Q<Button>("clearhistory");
             button.clicked -= ClearHistory;
             button.clicked += ClearHistory;
@@ -208,8 +193,8 @@ namespace IEDLabs.EditorUtilities
         private void RefreshViews(int timeout = interactionTimeoutInterval)
         {
             selectionData.history.RemoveExcessItems();
-            pinnedView?.RefreshView();
-            historyView?.RefreshView();
+            pinnedView.RefreshView();
+            historyView.RefreshView();
             HandleInteraction(timeout);
         }
 

@@ -10,7 +10,8 @@ using Utils = IEDLabs.EditorUtilities.SelectionTrackerUtils;
 
 namespace IEDLabs.EditorUtilities
 {
-    public class MclView : VisualElement
+    [UxmlElement]
+    public partial class MclView : VisualElement
     {
         private MultiColumnListView mcList;
         private SelectionCollection listSource;
@@ -23,7 +24,9 @@ namespace IEDLabs.EditorUtilities
             shouldReverseMissingSort,
             shouldReverseTimeSort;
 
-        public MclView(
+        public MclView() { }
+
+        public void InitializeView(
             SelectionCollection itemsSource,
             string title,
             string buttonText,

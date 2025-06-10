@@ -1,8 +1,8 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="True">
     <ui:VisualElement style="flex-grow: 1;">
-        <ui:MultiColumnListView name="mclView" reorderable="true" allow-add="false" show-alternating-row-backgrounds="All" show-border="true" show-foldout-header="true">
+        <ui:MultiColumnListView name="mclView" reorderable="true" allow-add="false" show-alternating-row-backgrounds="All" show-border="true" show-foldout-header="true" style="flex-grow: 1; min-height: 50; min-width: 200;">
             <ui:Columns primary-column-name="asset" resize-preview="true">
-                <ui:Column name="asset" title="Asset" width="160px" min-width="80px" stretchable="true" cell-template="project://database/Assets/ThirdParty/SelectionTracker/uxml/CellButton.uxml?fileID=9197481963319205126&amp;guid=ec1f24bc9f6e45542bfbd3566f24219c&amp;type=3#CellButton" />
+                <ui:Column name="asset" title="Asset" width="160px" min-width="80px" stretchable="true"/>
                 <ui:Column name="action" title="Action" width="160" stretchable="true" />
                 <ui:Column name="time" title="Last Selected" width="160" stretchable="true" />
             </ui:Columns>
