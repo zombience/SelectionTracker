@@ -1,15 +1,22 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:ied="IEDLabs.EditorUtilities" editor-extension-mode="True">
     <ui:VisualElement style="flex-grow: 1; padding: 10px;">
-        <ui:TwoPaneSplitView fixed-pane-initial-dimension="150" orientation="Vertical" style="flex-grow: 1; min-height: 400;">
-            <ui:VisualElement name="pinnedContainer" style="flex-grow: 1; height: 50px; min-height: 50px; min-width: 200px;">
-                <ied:MclView name="mclpinned"/>
+        <ui:Foldout text="Settings">
+            <ui:VisualElement name="utilContainer"
+                              style="flex-grow: 0; flex-direction: row; height: 30px; max-height: 30px; margin-top: 1px; margin-right: 1px; margin-bottom: 1px; margin-left: 1px; padding-top: 1px; padding-right: 1px; padding-bottom: 1px; padding-left: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 1px; border-top-right-radius: 1px; border-bottom-right-radius: 1px; border-bottom-left-radius: 1px; flex-shrink: 0;">
+                <ui:SliderInt name="historylength" label="History Length" value="50" high-value="100" low-value="5"
+                              show-input-field="true" style="width: 50%; max-width: 50%; align-self: center;" />
+                <ui:Button text="Clear History" name="clearhistory"
+                           style="min-width: 50%; max-width: 50%; flex-direction: row; background-color: rgba(255, 0, 0, 0.33); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);" />
+            </ui:VisualElement>
+        </ui:Foldout>
+        <ui:TwoPaneSplitView fixed-pane-initial-dimension="150" orientation="Vertical"
+                             style="flex-grow: 1; min-height: 200;">
+            <ui:VisualElement>
+                <ied:MclView name="mclpinned" />
             </ui:VisualElement>
             <ui:VisualElement name="historyContainer" style="flex-grow: 1; min-height: 50; min-width: 200;">
-                <ui:VisualElement name="utilContainer" style="flex-grow: 0; flex-direction: row; height: 30px; max-height: 30px; margin-top: 1px; margin-right: 1px; margin-bottom: 1px; margin-left: 1px; padding-top: 1px; padding-right: 1px; padding-bottom: 1px; padding-left: 1px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 1px; border-top-right-radius: 1px; border-bottom-right-radius: 1px; border-bottom-left-radius: 1px; flex-shrink: 0;">
-                    <ui:SliderInt name="historylength" label="History Length" value="50" high-value="100" low-value="5" show-input-field="true" style="width: 50%; max-width: 50%; align-self: center;" />
-                    <ui:Button text="Clear History" name="clearhistory" style="min-width: 50%; max-width: 50%; flex-direction: row; background-color: rgba(255, 0, 0, 0.33); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);" />
-                </ui:VisualElement>
-                <ied:MclView name="mclhistory"/>
+                
+                <ied:MclView name="mclhistory" />
             </ui:VisualElement>
         </ui:TwoPaneSplitView>
     </ui:VisualElement>
