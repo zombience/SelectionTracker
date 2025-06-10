@@ -9,7 +9,7 @@
                     <ui:SliderInt name="historylength" label="History Length" value="50" high-value="100" low-value="5" show-input-field="true" style="width: 50%; max-width: 50%; align-self: center;" />
                     <ui:Button text="Clear History" name="clearhistory" style="min-width: 50%; max-width: 50%; flex-direction: row; background-color: rgba(255, 0, 0, 0.33); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0);" />
                 </ui:VisualElement>
-                <ied:MclView name="mclhistory" style="flex-grow: 1;"/>
+                <ied:MclView name="mclhistory"/>
             </ui:VisualElement>
         </ui:TwoPaneSplitView>
     </ui:VisualElement>

@@ -17,7 +17,6 @@ namespace IEDLabs.EditorUtilities
         [SerializeField]
         private VisualTreeAsset xmlAsset;
 
-        private VisualElement root;
         private SelectionTrackerData selectionData;
         private MclView
             pinnedView,
@@ -49,7 +48,9 @@ namespace IEDLabs.EditorUtilities
                 return;
             }
 
-            root = visualTree.Instantiate();
+            rootVisualElement.Clear();
+            visualTree.CloneTree(rootVisualElement);
+
             BuildDisplay();
             Selection.selectionChanged += OnSelectionChange;
             cts = new CancellationTokenSource();
@@ -70,13 +71,12 @@ namespace IEDLabs.EditorUtilities
             selectionData.history.HistoryLength = selectionData.historyLength;
             selectionData.history.RemoveExcessItems();
 
-            rootVisualElement.Add(root);
-            pinnedView = root.Q<MclView>("mclpinned");
-            historyView = root.Q<MclView>("mclhistory");
+            pinnedView = rootVisualElement.Q<MclView>("mclpinned");
+            historyView = rootVisualElement.Q<MclView>("mclhistory");
             pinnedView.InitializeView(selectionData.pinned, "pinned items", "unpin", UnPinEntry, RemoveMissingEntry);
             historyView.InitializeView(selectionData.history, "selection history", "pin", PinEntry, RemoveMissingEntry);
 
-            var utilContainer = root.Q<VisualElement>("utilContainer");
+            var utilContainer = rootVisualElement.Q<VisualElement>("utilContainer");
             var button = utilContainer.Q<Button>("clearhistory");
             button.clicked -= ClearHistory;
             button.clicked += ClearHistory;
@@ -85,6 +85,7 @@ namespace IEDLabs.EditorUtilities
             slider.SetValueWithoutNotify(selectionData.historyLength);
             slider.UnregisterValueChangedCallback(SetHistoryLength);
             slider.RegisterValueChangedCallback(SetHistoryLength);
+            RefreshViews();
         }
 
 #region selection handling
