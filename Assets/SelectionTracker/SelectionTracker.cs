@@ -34,7 +34,6 @@ namespace IEDLabs.EditorUtilities
         {
             var wnd = GetWindow<SelectionTracker>();
             wnd.titleContent = new ("Selection Tracker");
-
         }
 
         public void CreateGUI()
@@ -85,6 +84,11 @@ namespace IEDLabs.EditorUtilities
             slider.SetValueWithoutNotify(selectionData.historyLength);
             slider.UnregisterValueChangedCallback(SetHistoryLength);
             slider.RegisterValueChangedCallback(SetHistoryLength);
+
+            var folderToggle = utilContainer.Q<Toggle>("foldertoggle");
+            folderToggle.SetValueWithoutNotify(selectionData.allowFolderSelection);
+            folderToggle.UnregisterValueChangedCallback(AllowFolderSelection);
+            folderToggle.RegisterValueChangedCallback(AllowFolderSelection);
             RefreshViews();
         }
 
@@ -103,7 +107,16 @@ namespace IEDLabs.EditorUtilities
             {
                 return;
             }
-
+ 
+            if (!selectionData.allowFolderSelection)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(DefaultAsset))
+                {
+                    return;
+                }
+            }
+                
             // Debug.Log($"#EDITORWINDO# Selection changed to: {activeObject.name} (GUID: {guid})");
             selectionData.history.AddEntry(activeObject, guid);
             RefreshViews();
@@ -189,6 +202,11 @@ namespace IEDLabs.EditorUtilities
         {
             selectionData.history.entries.RemoveAll(e => e.guid == entryToRemove.guid);
             UnPinEntry(entryToRemove);
+        }
+
+        private void AllowFolderSelection(ChangeEvent<bool> evt)
+        {
+            selectionData.allowFolderSelection = evt.newValue;
         }
 
         private void RefreshViews(int timeout = interactionTimeoutInterval)

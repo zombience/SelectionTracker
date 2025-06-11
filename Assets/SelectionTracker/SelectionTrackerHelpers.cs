@@ -15,6 +15,7 @@ namespace IEDLabs.EditorUtilities
     public class SelectionTrackerData
     {
         public int historyLength = 20;
+        public bool allowFolderSelection = true;
 
         public SelectionCollection
             history = new(),
@@ -143,8 +144,8 @@ namespace IEDLabs.EditorUtilities
 
         /// <summary>
         /// only load specific objects:
-        /// some assets load incorrect icons if only passing EditorGUIUtility.ObjectConcent(null, assetType)
-        /// loading all assets each time UI is interacted with is unnecessary
+        /// some assets load incorrect icons when passing null:
+        /// -> EditorGUIUtility.ObjectConcent(null, assetType)
         /// </summary>
         /// <param name="extension"></param>
         /// <returns></returns>
@@ -249,8 +250,7 @@ namespace IEDLabs.EditorUtilities
         private static string GetProjectName()
         {
             string[] s = Application.dataPath.Split('/');
-            string projectName = s[^2];
-            return projectName;
+            return s[^2];
         }
 
 #endregion // path
