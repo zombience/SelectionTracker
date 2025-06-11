@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 
 using UnityEditor;
-
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -125,6 +124,7 @@ namespace IEDLabs.EditorUtilities
                 float opacity = entry.isNull ? 0.5f : 1.0f;
                 label.text = entry.isNull ? "(missing)" : dt.ToString("HH:mm:ss MM-dd");
                 label.style.opacity = opacity;
+                label.style.alignSelf = new StyleEnum<Align>(Align.Center);
             };
         }
 
