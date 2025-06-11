@@ -123,7 +123,7 @@ namespace IEDLabs.EditorUtilities
                 var label = element as Label;
                 var dt = DateTimeOffset.FromUnixTimeSeconds(entry.lastSelected).ToLocalTime();
                 float opacity = entry.isNull ? 0.5f : 1.0f;
-                label.text = entry.isNull ? "(missing)" : dt.ToString("HH:mm:ss yy-MM-dd");
+                label.text = entry.isNull ? "(missing)" : dt.ToString("HH:mm:ss MM-dd");
                 label.style.opacity = opacity;
             };
         }
