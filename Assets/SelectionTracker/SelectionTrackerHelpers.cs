@@ -162,35 +162,6 @@ namespace IEDLabs.EditorUtilities
             return false;
         }
 
-
-
-        private static string CheckSpecialTypes(Type assetType, string extension)
-        {
-
-            // these cases fail when using type lookup
-            // .asset files are interpreted as MonoScript
-            // Known missing extension match: inputactions
-            var iconName = string.Empty;
-            switch (extension)
-            {
-                case "cs":
-                    iconName = "cs Script Icon";
-                    break;
-                case "asset":
-                    iconName = "ScriptableObject Icon";
-                    break;
-                case "inputactions":
-                    return iconName;
-            }
-
-            if (assetType == typeof(DefaultAsset))
-            {
-                iconName = "Folder Icon";
-            }
-
-            return iconName;
-        }
-
 #region IO Helpers
 
         /// <summary>
