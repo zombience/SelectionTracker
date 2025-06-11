@@ -194,8 +194,8 @@ namespace IEDLabs.EditorUtilities
         private void RefreshViews(int timeout = interactionTimeoutInterval)
         {
             selectionData.history.RemoveExcessItems();
-            pinnedView.RefreshView();
-            historyView.RefreshView();
+            pinnedView?.RefreshView();
+            historyView?.RefreshView();
             HandleInteraction(timeout);
         }
 
