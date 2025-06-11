@@ -1,17 +1,20 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:ied="IEDLabs.EditorUtilities" editor-extension-mode="True">
     <ui:VisualElement style="flex-grow: 1; padding: 10px;">
-        <ui:Foldout text="Settings" name="settingsFoldout">
+        <ui:Foldout text="Settings" name="settingsFoldout" value="true"
+                    style="color: rgb(255, 255, 255); border-left-color: rgba(0, 0, 0, 0.3); border-right-color: rgba(0, 0, 0, 0.3); border-top-color: rgba(0, 0, 0, 0.3); border-bottom-color: rgba(0, 0, 0, 0.3); border-bottom-width: 1px; padding-top: 5px; padding-right: 5px; padding-bottom: 10px; padding-left: 0; margin-bottom: 10px; margin-top: 0; margin-right: 10px;">
             <ui:VisualElement name="utilContainer"
-                              style="flex-direction: row; height: 30px; flex-shrink: 0; justify-content: center; align-items: center;">
+                              style="flex-direction: column; justify-content: space-between; align-items: flex-start; align-self: stretch; flex-wrap: wrap; flex-grow: 0; flex-shrink: 0; min-height: 75px;">
                 <ui:SliderInt name="historylength" label="History Length" value="50" high-value="100" low-value="5"
                               show-input-field="true" fill="true"
-                              style="flex-shrink: 1; flex-grow: 1; justify-content: flex-start; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-bottom-left-radius: 3px; text-overflow: clip; color: rgb(255, 255, 255); -unity-text-align: middle-left;" />
+                              style="flex-grow: 1; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 3px; border-top-right-radius: 3px; border-bottom-right-radius: 3px; border-bottom-left-radius: 3px;" />
+                <ui:Toggle label="Allow Folders" value="true" name="folderstoggle"
+                           style="justify-content: space-between; flex-grow: 1; min-height: 24px; align-items: center;" />
                 <ui:Button text="Clear History" name="clearhistory"
-                           style="flex-direction: row; background-color: rgba(255, 0, 0, 0.33); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); flex-grow: 1; flex-shrink: 1;" />
+                           style="flex-direction: row; background-color: rgba(255, 0, 0, 0.33); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); flex-grow: 1; flex-shrink: 1; min-height: 24px;" />
             </ui:VisualElement>
         </ui:Foldout>
         <ui:TwoPaneSplitView fixed-pane-initial-dimension="150" orientation="Vertical"
-                             style="flex-grow: 1; min-height: 200;">
+                             style="flex-grow: 1; min-height: 100px;">
             <ui:VisualElement>
                 <ied:MclView name="mclpinned" />
             </ui:VisualElement>
