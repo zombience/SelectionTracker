@@ -8,8 +8,14 @@
     [
         "Editor",
         "Utility",
-        "Assets"
+        "Organizition"
     ],
+    "license": "MIT",
+    "repository":
+    {
+        "type": "git",
+        "url": "ssh://git@github.com/zombience/SelectionTracker.git#1.0.0"
+    },
     "author":
     {
         "name": "IEDLabs",
