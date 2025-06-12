@@ -9,9 +9,16 @@ using Utils = IEDLabs.EditorUtilities.SelectionTrackerUtils;
 
 namespace IEDLabs.EditorUtilities
 {
+
+#if UNITY_6
     [UxmlElement]
     public partial class MclView : VisualElement
     {
+#elif UNITY_2022_3_OR_NEWER
+    public class MclView : VisualElement
+    {
+        public new class UxmlFactory : UxmlFactory<MclView> { }
+#endif
         private MultiColumnListView mcList;
         private SelectionCollection listSource;
         private Action<SelectionEntry>
